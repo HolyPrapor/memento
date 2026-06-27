@@ -27,9 +27,27 @@ unfamiliar code, ask the wiki: *what should I know about this area?*
 
 ## Workflow
 
-### 1. Search First
+### 1. Orient First
 
-When asked to understand or modify something in the codebase, start with:
+Every session starts with orientation. Before opening any source file, run:
+
+```bash
+memento search "codebase map architecture glossary"
+```
+
+This surfaces the orientation documents — codebase map (what lives where,
+what's current vs. obsolete), architecture overview (how components connect),
+and glossary (domain terms). These tell you which parts of the codebase are
+*relevant* and which are *safe to skip* before you waste time reading dead
+code.
+
+If these docs don't exist yet, note it — the codebase lacks orientation
+materials, so you'll need to map the area yourself as you work.
+
+### 2. Search Before Acting
+
+When asked to understand or modify something specific, follow up with a
+targeted search:
 
 ```bash
 memento search <query>
@@ -42,11 +60,26 @@ memento search --json "<query>"
 ```
 
 Frame your query around what you want to understand. Good examples:
-- `memento search "how does the ECS scheduler assign systems to threads"`
-- `memento search "render pipeline batching strategy"`
-- `memento search "saved game migration from v1 to v2"`
+- `memento search "game fighting system"`
+- `memento search "save checkpoint persistence"`
+- `memento search "card merge interaction rules"`
 
-### 2. Treat Results as Context, Not Authority
+### 3. Watch for Stale Signals
+
+Wiki sections are not guaranteed current. When reading results, look for:
+
+- **Status markers** — sections labeled "OBSOLETE", "Planned", "Phase X" tell
+  you whether the content reflects the current codebase or aspirations
+- **File references** — sections that cite specific source files are more
+  trustworthy than vague overviews; verify at least one reference against the
+  actual code
+- **Date or version mentions** — if a section references a version or milestone
+  that has passed, check whether the described work actually landed
+
+If a section is clearly outdated and you can't verify it, say so rather than
+relying on it.
+
+### 4. Treat Results as Context, Not Authority
 
 Wiki results provide orientation and rationale. They are not a substitute for
 reading the source code. Always verify claims against the actual code — the
@@ -58,8 +91,9 @@ Use search results to:
 - Understand the design rationale before proposing changes
 - Find related systems you might also need to touch
 - Learn about constraints you must respect
+- Know which systems are dead code — don't modify them
 
-### 3. Contribute Back
+### 5. Contribute Back
 
 After completing a task, if you learned something durable about the codebase,
 add it to the wiki. Good contributions:
@@ -69,11 +103,12 @@ add it to the wiki. Good contributions:
 - A migration gotcha or required ordering
 - A subsystem overview you wish you'd had when starting
 - A debugging note that saved you hours
+- A status update on a section that has become outdated
 
 Keep updates factual, small, and reviewable. Add to the smallest relevant
 section. Never store personal memory, transient notes, or generated summaries.
 
-### 4. Reindex After Editing
+### 6. Reindex After Editing
 
 After editing wiki files:
 
@@ -81,7 +116,7 @@ After editing wiki files:
 memento index docs/agent-wiki
 ```
 
-### 5. Command Reference
+### 7. Command Reference
 
 ```
 memento index [--db .memento/wiki.db] <wiki-dir>
