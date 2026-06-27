@@ -37,8 +37,8 @@ func Index(wikiDir string, dbPath string) error {
 	defer insertSection.Close()
 
 	insertFTS, err := db.Prepare(`
-		INSERT INTO sections_fts (rowid, content, path, anchor, heading_level, section_order)
-		VALUES (?, ?, ?, ?, ?, ?)
+		INSERT INTO sections_fts (rowid, body, heading_weight, path, anchor, heading_level, section_order)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return fmt.Errorf("prepare insert fts: %w", err)
@@ -103,8 +103,8 @@ func insertSections(db *sql.DB, insertSection, insertFTS, insertLink *sql.Stmt, 
 			return fmt.Errorf("get last insert id: %w", err)
 		}
 
-		content := buildFTSContent(s.Heading, s.Body)
-		_, err = tx.Stmt(insertFTS).Exec(id, content, s.Path, s.Anchor, s.HeadingLevel, s.SectionOrder)
+		headingWeight := buildHeadingWeight(s.Heading)
+		_, err = tx.Stmt(insertFTS).Exec(id, s.Body, headingWeight, s.Path, s.Anchor, s.HeadingLevel, s.SectionOrder)
 		if err != nil {
 			return fmt.Errorf("insert fts: %w", err)
 		}
@@ -120,9 +120,9 @@ func insertSections(db *sql.DB, insertSection, insertFTS, insertLink *sql.Stmt, 
 	return tx.Commit()
 }
 
-func buildFTSContent(heading string, body string) string {
+func buildHeadingWeight(heading string) string {
 	if heading == "" {
-		return body
+		return ""
 	}
-	return heading + "\n" + heading + "\n" + heading + "\n" + body
+	return heading + "\n" + heading + "\n" + heading
 }

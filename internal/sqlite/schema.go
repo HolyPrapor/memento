@@ -40,7 +40,8 @@ func InitSchema(db *sql.DB) error {
 			section_order INTEGER NOT NULL
 		)`,
 		`CREATE VIRTUAL TABLE IF NOT EXISTS sections_fts USING fts5(
-			content,
+			body,
+			heading_weight,
 			path UNINDEXED,
 			anchor UNINDEXED,
 			heading_level UNINDEXED,

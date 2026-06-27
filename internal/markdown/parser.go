@@ -69,12 +69,19 @@ func ParseFile(path string, source []byte) ([]Section, error) {
 	}
 
 	for i, h := range headings {
-		start := h.offset
+		start := h.bodyOffset
+		if start >= len(source) {
+			start = h.offset
+		}
 		var end int
 		if i+1 < len(headings) {
 			end = headings[i+1].offset
 		} else {
 			end = len(source)
+		}
+
+		if start >= end {
+			continue
 		}
 
 		sectionSource := source[start:end]
@@ -98,9 +105,10 @@ func ParseFile(path string, source []byte) ([]Section, error) {
 }
 
 type headingInfo struct {
-	level  int
-	text   string
-	offset int
+	level      int
+	text       string
+	offset     int
+	bodyOffset int
 }
 
 func collectHeadingInfos(root ast.Node, source []byte) []headingInfo {
@@ -114,10 +122,13 @@ func collectHeadingInfos(root ast.Node, source []byte) []headingInfo {
 			text := extractPlainText(n, source)
 			if n.Lines().Len() > 0 {
 				offset := n.Lines().At(0).Start
+				lastLine := n.Lines().At(n.Lines().Len() - 1)
+				bodyOffset := lastLine.Stop + 1
 				headings = append(headings, headingInfo{
-					level:  h.Level,
-					text:   text,
-					offset: offset,
+					level:      h.Level,
+					text:       text,
+					offset:     offset,
+					bodyOffset: bodyOffset,
 				})
 			}
 			return ast.WalkSkipChildren, nil

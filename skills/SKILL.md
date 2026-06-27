@@ -39,3 +39,14 @@ memento search [--db .memento/wiki.db] [--limit 10] <query>
 memento version
 memento update
 ```
+
+## Configuration
+
+Place `.memento/config.yaml` next to the wiki database to downrank sections
+by path glob. First matching rule wins. No reindex required.
+
+```yaml
+downrank:
+  - paths: ["Obsolete/*"]
+    factor: 0.1
+```

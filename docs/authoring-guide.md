@@ -48,6 +48,10 @@ Prefix sections with status when it matters:
 # Multiplayer (PLANNED)
 ```
 
+Move obsolete files to an `Obsolete/` directory and use
+[`.memento/config.yaml`](config) to downrank them so they don't clutter
+search results.
+
 If a roadmap doc mixes done and planned work, add a status line at the top:
 `Status: Phase 3 done, Phase 4 not yet landed. See ResumeRouter.cs.`
 

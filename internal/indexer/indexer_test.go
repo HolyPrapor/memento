@@ -7,28 +7,25 @@ import (
 	"testing"
 )
 
-func TestBuildFTSContent(t *testing.T) {
+func TestBuildHeadingWeight(t *testing.T) {
 	tests := []struct {
 		heading  string
-		body     string
 		expected string
 	}{
 		{
 			heading:  "Getting Started",
-			body:     "This is the body.",
-			expected: "Getting Started\nGetting Started\nGetting Started\nThis is the body.",
+			expected: "Getting Started\nGetting Started\nGetting Started",
 		},
 		{
 			heading:  "",
-			body:     "Just body.",
-			expected: "Just body.",
+			expected: "",
 		},
 	}
 
 	for _, tc := range tests {
-		got := buildFTSContent(tc.heading, tc.body)
+		got := buildHeadingWeight(tc.heading)
 		if got != tc.expected {
-			t.Errorf("buildFTSContent(%q, %q) = %q, want %q", tc.heading, tc.body, got, tc.expected)
+			t.Errorf("buildHeadingWeight(%q) = %q, want %q", tc.heading, got, tc.expected)
 		}
 	}
 }

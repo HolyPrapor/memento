@@ -29,10 +29,24 @@ memento search --limit 5 "query"    # limit results
 
 1. **Index** walks a directory of `.md` files, splits them into sections at
    each heading (`#`...`######`), and rebuilds a SQLite FTS5 index.
-2. **Search** queries the index with BM25 ranking, returns snippets with
-   highlighted matches, paths, headings, and relevance scores.
-3. Sections are the search unit — not whole files, not grep lines. Headings
-   are weighted 3x over body text.
+2. **Search** queries the index with BM25 ranking, returns JSON with snippets,
+   relevance scores, and backlinks — sections that reference each result.
+   Headings are weighted 3x over body text for ranking.
+3. **Backlinks** are extracted from Markdown links (`[text](path.md#heading)`)
+   during indexing. Use them to discover related docs and change impact.
+
+## Configuration
+
+Create `.memento/config.yaml` next to your database to downrank sections
+by path glob (first match wins). No reindex needed.
+
+```yaml
+downrank:
+  - paths: ["Obsolete/*"]
+    factor: 0.1
+  - paths: ["Migration/*"]
+    factor: 0.3
+```
 
 ## Writing Wiki Pages
 

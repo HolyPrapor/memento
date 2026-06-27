@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
+	"memento/internal/config"
 	sqlite "memento/internal/sqlite"
 )
 
@@ -24,7 +26,8 @@ type Result struct {
 }
 
 type Searcher struct {
-	DB *sql.DB
+	DB     *sql.DB
+	Config *config.Config
 }
 
 func Open(dbPath string) (*Searcher, error) {
@@ -37,7 +40,13 @@ func Open(dbPath string) (*Searcher, error) {
 		return nil, err
 	}
 
-	return &Searcher{DB: db}, nil
+	cfg, err := config.LoadConfig(dbPath)
+	if err != nil {
+		db.Close()
+		return nil, fmt.Errorf("load config: %w", err)
+	}
+
+	return &Searcher{DB: db, Config: cfg}, nil
 }
 
 func (s *Searcher) Close() error {
@@ -53,7 +62,7 @@ func (s *Searcher) Search(query string, limit int) ([]Result, error) {
 			s.path,
 			s.anchor,
 			CASE WHEN s.heading_level = 0 THEN '' ELSE s.heading END AS heading,
-			-bm25(sections_fts) AS relevance,
+			-bm25(sections_fts, 1.0, 3.0) AS relevance,
 			snippet(sections_fts, 0, '<mark>', '</mark>', '...', 64) AS snippet
 		FROM sections_fts
 		JOIN sections s ON s.id = sections_fts.rowid
@@ -82,16 +91,20 @@ func (s *Searcher) Search(query string, limit int) ([]Result, error) {
 		return nil, fmt.Errorf("rows iteration: %w", err)
 	}
 
-	if len(results) > 0 {
-		backlinks, err := s.getBacklinks(targetPairs)
-		if err != nil {
-			return nil, fmt.Errorf("backlinks: %w", err)
-		}
-		for i := range results {
-			key := targetPairs[i].path + "\x00" + targetPairs[i].anchor
-			results[i].Backlinks = backlinks[key]
-		}
+	backlinks, err := s.getBacklinks(targetPairs)
+	if err != nil {
+		return nil, fmt.Errorf("backlinks: %w", err)
 	}
+
+	for i := range results {
+		results[i].Relevance = s.Config.ApplyDownrank(results[i].Path, results[i].Relevance)
+		key := targetPairs[i].path + "\x00" + targetPairs[i].anchor
+		results[i].Backlinks = backlinks[key]
+	}
+
+	sort.SliceStable(results, func(i, j int) bool {
+		return results[i].Relevance > results[j].Relevance
+	})
 
 	if results == nil {
 		results = []Result{}
