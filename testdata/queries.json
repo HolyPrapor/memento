@@ -1,0 +1,50 @@
+[
+  {
+    "query": "runner separated scheduler scaling",
+    "expected_section": "architecture/runner.md",
+    "expected_heading": "Design Rationale",
+    "min_rank": 1
+  },
+  {
+    "query": "flaky indexer tests storage database reset",
+    "expected_section": "debugging/flaky-tests.md",
+    "expected_heading": "Storage Migration Race",
+    "min_rank": 1
+  },
+  {
+    "query": "SQLite FTS5 transactions ACID",
+    "expected_section": "decisions/storage-v2.md",
+    "expected_heading": "Why SQLite",
+    "min_rank": 1
+  },
+  {
+    "query": "worker pool configurable concurrent",
+    "expected_section": "architecture/runner.md",
+    "expected_heading": "Worker Pool",
+    "min_rank": 1
+  },
+  {
+    "query": "xyznonexistentabc",
+    "expected_section": "",
+    "expected_heading": "",
+    "min_rank": 999
+  },
+  {
+    "query": "task lifecycle stages dequeued assigned execution timeout",
+    "expected_section": "architecture/runner.md",
+    "expected_heading": "Task Lifecycle",
+    "min_rank": 1
+  },
+  {
+    "query": "network timeout CI httptest",
+    "expected_section": "debugging/flaky-tests.md",
+    "expected_heading": "Network Timeout",
+    "min_rank": 1
+  },
+  {
+    "query": "migration steps flat files parallel",
+    "expected_section": "decisions/storage-v2.md",
+    "expected_heading": "Migration Steps",
+    "min_rank": 1
+  }
+]
