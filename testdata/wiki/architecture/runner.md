@@ -10,7 +10,8 @@ needs to be highly available to accept incoming tasks, while the runner is
 CPU-intensive and benefits from horizontal scaling across multiple machines.
 
 This separation also simplifies testing — the runner can be tested in isolation
-without mocking the full scheduling pipeline.
+without mocking the full scheduling pipeline. The runner stores results using
+the [Storage v2](decisions/storage-v2.md#why-sqlite) backend.
 
 ## Worker Pool
 

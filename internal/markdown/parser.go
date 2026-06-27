@@ -9,6 +9,12 @@ import (
 	"github.com/yuin/goldmark/text"
 )
 
+type Link struct {
+	TargetPath   string
+	TargetAnchor string
+	Text         string
+}
+
 type Section struct {
 	Path         string
 	Anchor       string
@@ -16,6 +22,7 @@ type Section struct {
 	HeadingLevel int
 	Body         string
 	SectionOrder int
+	Links        []Link
 }
 
 func ParseFile(path string, source []byte) ([]Section, error) {
@@ -26,6 +33,7 @@ func ParseFile(path string, source []byte) ([]Section, error) {
 
 	if len(headings) == 0 {
 		body := extractPlainText(root, source)
+		links := extractLinks(root, source, path)
 		baseName := strings.TrimSuffix(filepath.Base(path), ".md")
 		return []Section{{
 			Path:         path,
@@ -34,6 +42,7 @@ func ParseFile(path string, source []byte) ([]Section, error) {
 			HeadingLevel: 0,
 			Body:         strings.TrimSpace(body),
 			SectionOrder: 0,
+			Links:        links,
 		}}, nil
 	}
 
@@ -46,6 +55,7 @@ func ParseFile(path string, source []byte) ([]Section, error) {
 		preambleBody := extractPlainText(preambleDoc, preambleSource)
 		preambleBody = strings.TrimSpace(preambleBody)
 		if preambleBody != "" {
+			links := extractLinks(preambleDoc, preambleSource, path)
 			sections = append(sections, Section{
 				Path:         path,
 				Anchor:       Slugify(baseName),
@@ -53,6 +63,7 @@ func ParseFile(path string, source []byte) ([]Section, error) {
 				HeadingLevel: 0,
 				Body:         preambleBody,
 				SectionOrder: 0,
+				Links:        links,
 			})
 		}
 	}
@@ -70,6 +81,7 @@ func ParseFile(path string, source []byte) ([]Section, error) {
 		sectionDoc := goldmark.DefaultParser().Parse(text.NewReader(sectionSource))
 		body := extractPlainText(sectionDoc, sectionSource)
 		body = strings.TrimSpace(body)
+		links := extractLinks(sectionDoc, sectionSource, path)
 
 		sections = append(sections, Section{
 			Path:         path,
@@ -78,6 +90,7 @@ func ParseFile(path string, source []byte) ([]Section, error) {
 			HeadingLevel: h.level,
 			Body:         body,
 			SectionOrder: len(sections),
+			Links:        links,
 		})
 	}
 
@@ -142,6 +155,69 @@ func extractPlainText(node ast.Node, source []byte) string {
 		}
 		if n.Kind() == ast.KindRawHTML {
 			return ast.WalkSkipChildren, nil
+		}
+		return ast.WalkContinue, nil
+	})
+	return buf.String()
+}
+
+func extractLinks(node ast.Node, source []byte, currentPath string) []Link {
+	var links []Link
+	ast.Walk(node, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+		if !entering || n.Kind() != ast.KindLink {
+			return ast.WalkContinue, nil
+		}
+
+		l := n.(*ast.Link)
+		dest := string(l.Destination)
+		if dest == "" {
+			return ast.WalkContinue, nil
+		}
+
+		if strings.HasPrefix(dest, "http://") || strings.HasPrefix(dest, "https://") {
+			return ast.WalkContinue, nil
+		}
+
+		targetPath, targetAnchor := splitLinkDest(dest)
+
+		if targetPath == "" {
+			targetPath = currentPath
+		} else {
+			dir := filepath.Dir(currentPath)
+			targetPath = filepath.Join(dir, targetPath)
+			targetPath = filepath.ToSlash(targetPath)
+		}
+
+		text := extractLinkText(n, source)
+
+		links = append(links, Link{
+			TargetPath:   targetPath,
+			TargetAnchor: targetAnchor,
+			Text:         text,
+		})
+		return ast.WalkContinue, nil
+	})
+	return links
+}
+
+func splitLinkDest(dest string) (path, anchor string) {
+	if idx := strings.IndexByte(dest, '#'); idx >= 0 {
+		path = dest[:idx]
+		anchor = Slugify(dest[idx+1:])
+	} else {
+		path = dest
+	}
+	return path, anchor
+}
+
+func extractLinkText(node ast.Node, source []byte) string {
+	var buf strings.Builder
+	ast.Walk(node, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+		if !entering {
+			return ast.WalkContinue, nil
+		}
+		if n.Kind() == ast.KindText {
+			buf.Write(n.Text(source))
 		}
 		return ast.WalkContinue, nil
 	})

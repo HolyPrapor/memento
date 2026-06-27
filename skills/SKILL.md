@@ -13,7 +13,7 @@ memento search "codebase map architecture glossary"
 ### 2. Topic search
 ```bash
 memento search "fighting system"
-memento search --json "save checkpoint"
+memento search "save checkpoint"
 ```
 
 ### 3. Verify
@@ -35,5 +35,5 @@ memento index docs/agent-wiki
 
 ```
 memento index [--db .memento/wiki.db] <wiki-dir>
-memento search [--db .memento/wiki.db] [--json] [--limit 10] <query>
+memento search [--db .memento/wiki.db] [--limit 10] <query>
 ```

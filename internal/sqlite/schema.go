@@ -47,6 +47,15 @@ func InitSchema(db *sql.DB) error {
 			section_order UNINDEXED,
 			tokenize='porter'
 		)`,
+		`CREATE TABLE IF NOT EXISTS section_links (
+			source_section_id INTEGER NOT NULL,
+			target_path TEXT NOT NULL,
+			target_anchor TEXT NOT NULL DEFAULT '',
+			link_text TEXT NOT NULL,
+			FOREIGN KEY (source_section_id) REFERENCES sections(id)
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_section_links_target
+			ON section_links(target_path, target_anchor)`,
 	}
 
 	for _, stmt := range statements {
@@ -59,6 +68,9 @@ func InitSchema(db *sql.DB) error {
 }
 
 func RecreateTables(db *sql.DB) error {
+	if _, err := db.Exec(`DROP TABLE IF EXISTS section_links`); err != nil {
+		return fmt.Errorf("drop section_links: %w", err)
+	}
 	if _, err := db.Exec(`DROP TABLE IF EXISTS sections_fts`); err != nil {
 		return fmt.Errorf("drop sections_fts: %w", err)
 	}

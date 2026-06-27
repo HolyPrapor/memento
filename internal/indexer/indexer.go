@@ -45,6 +45,15 @@ func Index(wikiDir string, dbPath string) error {
 	}
 	defer insertFTS.Close()
 
+	insertLink, err := db.Prepare(`
+		INSERT INTO section_links (source_section_id, target_path, target_anchor, link_text)
+		VALUES (?, ?, ?, ?)
+	`)
+	if err != nil {
+		return fmt.Errorf("prepare insert link: %w", err)
+	}
+	defer insertLink.Close()
+
 	return filepath.Walk(absWiki, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -72,11 +81,11 @@ func Index(wikiDir string, dbPath string) error {
 			return fmt.Errorf("parse file %s: %w", path, err)
 		}
 
-		return insertSections(db, insertSection, insertFTS, sections)
+		return insertSections(db, insertSection, insertFTS, insertLink, sections)
 	})
 }
 
-func insertSections(db *sql.DB, insertSection, insertFTS *sql.Stmt, sections []markdown.Section) error {
+func insertSections(db *sql.DB, insertSection, insertFTS, insertLink *sql.Stmt, sections []markdown.Section) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
@@ -98,6 +107,13 @@ func insertSections(db *sql.DB, insertSection, insertFTS *sql.Stmt, sections []m
 		_, err = tx.Stmt(insertFTS).Exec(id, content, s.Path, s.Anchor, s.HeadingLevel, s.SectionOrder)
 		if err != nil {
 			return fmt.Errorf("insert fts: %w", err)
+		}
+
+		for _, l := range s.Links {
+			_, err = tx.Stmt(insertLink).Exec(id, l.TargetPath, l.TargetAnchor, l.Text)
+			if err != nil {
+				return fmt.Errorf("insert link: %w", err)
+			}
 		}
 	}
 

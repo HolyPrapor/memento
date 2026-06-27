@@ -31,7 +31,7 @@ func main() {
 func printUsage() {
 	fmt.Fprint(os.Stderr, `Usage:
   memento index [--db .memento/wiki.db] <wiki-dir>
-  memento search [--db .memento/wiki.db] [--json] [--limit 10] <query>
+  memento search [--db .memento/wiki.db] [--limit 10] <query>
 `)
 }
 
@@ -62,10 +62,9 @@ func runIndex(args []string) {
 func runSearch(args []string) {
 	fs := flag.NewFlagSet("search", flag.ExitOnError)
 	fs.Usage = func() {
-		fmt.Fprint(os.Stderr, "Usage: memento search [--db .memento/wiki.db] [--json] [--limit 10] <query>\n")
+		fmt.Fprint(os.Stderr, "Usage: memento search [--db .memento/wiki.db] [--limit 10] <query>\n")
 	}
 	dbPath := fs.String("db", ".memento/wiki.db", "database path")
-	jsonOutput := fs.Bool("json", false, "output results as JSON")
 	limit := fs.Int("limit", 10, "max number of results")
 
 	fs.Parse(args)
@@ -84,15 +83,8 @@ func runSearch(args []string) {
 	}
 	defer s.Close()
 
-	if *jsonOutput {
-		if err := s.SearchJSON(query, *limit); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-			os.Exit(1)
-		}
-	} else {
-		if err := s.SearchText(query, *limit); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-			os.Exit(1)
-		}
+	if err := s.SearchJSON(query, *limit); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		os.Exit(1)
 	}
 }

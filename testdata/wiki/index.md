@@ -13,11 +13,12 @@ system uses a modular architecture with separate components for different tasks.
 
 The system is built around a core runner that orchestrates all operations. The
 runner is separated from the scheduler to allow independent scaling of execution
-and scheduling logic. This separation means the runner can handle heavy
-workloads without blocking the scheduler from accepting new tasks.
+and scheduling logic. See [Runner Architecture](architecture/runner.md#design-rationale)
+for the rationale behind this split.
 
 ## Design Decisions
 
 Storage was migrated from flat files to SQLite in version 2. This change was
 made to improve query performance and simplify the indexing pipeline. The
 migration involved converting all existing data and updating the API layer.
+See [Storage v2](decisions/storage-v2.md) for migration details.

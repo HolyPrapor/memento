@@ -20,7 +20,7 @@ and provides better-than-grep search over heading-based sections.
 
 1. `memento` Go binary with two subcommands:
    - `memento index <dir>` — walk a directory, parse Markdown into sections, rebuild FTS5 index
-   - `memento search <query>` — query FTS5, print ranked results (plain text or `--json`)
+   - `memento search <query>` — query FTS5, print ranked results as JSON with backlinks
 2. Test wiki + retrieval benchmark harness
 3. opencode skill file (SKILL.md)
 4. Wiki authoring guidelines doc
@@ -29,15 +29,14 @@ and provides better-than-grep search over heading-based sections.
 
 ```
 memento index [--db .memento/wiki.db] <wiki-dir>
-memento search [--db .memento/wiki.db] [--json] [--limit 10] <query>
+memento search [--db .memento/wiki.db] [--limit 10] <query>
 ```
 
 - `index` does a full reindex every run. No incremental mode in MVP.
 - `search` fails with a clear message if the DB hasn't been built.
 - Default DB path: `.memento/wiki.db` (resolved relative to the wiki directory's
   parent, which is assumed to be the repo root).
-- `--json` outputs the structured schema from the pitch. Plain text is the
-  default for humans.
+- Output is always JSON. Results include `path`, `heading` (omitempty), `relevance`, `snippet`, and `backlinks` (sections that reference the result).
 - `--limit` controls max results (default 10).
 
 ## Section Model
@@ -235,13 +234,12 @@ changes needed). The install script copies it there. For project-local use,
 The skill body instructs agents to:
 1. Run `memento search <query>` before architectural, migration, storage,
    testing, or broad debugging work.
-2. Use `memento search --json "query"` for structured results when needed.
-3. Treat results as context and rationale, never as source of truth over source
+2. Treat results as context and rationale, never as source of truth over source
    code.
-4. Update the smallest relevant Markdown section when a task reveals durable
+3. Update the smallest relevant Markdown section when a task reveals durable
    project knowledge.
-5. Run `memento index <wiki-dir>` after editing wiki files.
-6. Keep updates factual, small, reviewable, and committed as normal Markdown
+4. Run `memento index <wiki-dir>` after editing wiki files.
+5. Keep updates factual, small, reviewable, and committed as normal Markdown
    changes.
 
 ## Wiki Authoring Guidelines
@@ -273,7 +271,7 @@ binary, and puts it on PATH.
 1. `go build ./cmd/memento` succeeds
 2. `./memento index docs/agent-wiki` populates `.memento/wiki.db`
 3. `./memento search "runner separation"` returns ranked sections with snippets
-4. `./memento search --json "migration"` returns valid JSON
+4. `./memento search "migration"` returns valid JSON with backlinks
 5. Searching with no DB prints a clear error
 6. `go test ./...` passes, including retrieval benchmark assertions
 7. Non-Markdown files and code-fenced `#` are handled correctly

@@ -189,3 +189,56 @@ func TestParseFileBodyContent(t *testing.T) {
 		t.Errorf("expected no markdown formatting in body, got: %s", body)
 	}
 }
+
+func TestExtractLinks(t *testing.T) {
+	source := []byte(`# Links
+
+See [Runner](architecture/runner.md#design-rationale) for details.
+Also [storage](decisions/storage-v2.md) and [same file](#links).
+External [Google](https://google.com) is skipped.
+`)
+
+	sections, err := ParseFile("docs/wiki/links.md", source)
+	if err != nil {
+		t.Fatalf("ParseFile failed: %v", err)
+	}
+
+	if len(sections) != 1 {
+		t.Fatalf("expected 1 section, got %d", len(sections))
+	}
+
+	links := sections[0].Links
+	if len(links) != 3 {
+		t.Fatalf("expected 3 links (external skipped), got %d", len(links))
+	}
+
+	if links[0].TargetPath != "docs/wiki/architecture/runner.md" {
+		t.Errorf("expected resolved path 'docs/wiki/architecture/runner.md', got %q", links[0].TargetPath)
+	}
+	if links[0].TargetAnchor != "design-rationale" {
+		t.Errorf("expected anchor 'design-rationale', got %q", links[0].TargetAnchor)
+	}
+	if links[0].Text != "Runner" {
+		t.Errorf("expected text 'Runner', got %q", links[0].Text)
+	}
+
+	if links[1].TargetPath != "docs/wiki/decisions/storage-v2.md" {
+		t.Errorf("expected 'docs/wiki/decisions/storage-v2.md', got %q", links[1].TargetPath)
+	}
+	if links[1].TargetAnchor != "" {
+		t.Errorf("expected empty anchor, got %q", links[1].TargetAnchor)
+	}
+	if links[1].Text != "storage" {
+		t.Errorf("expected text 'storage', got %q", links[1].Text)
+	}
+
+	if links[2].TargetPath != "docs/wiki/links.md" {
+		t.Errorf("expected same-file path 'docs/wiki/links.md', got %q", links[2].TargetPath)
+	}
+	if links[2].TargetAnchor != "links" {
+		t.Errorf("expected anchor 'links', got %q", links[2].TargetAnchor)
+	}
+	if links[2].Text != "same file" {
+		t.Errorf("expected text 'same file', got %q", links[2].Text)
+	}
+}

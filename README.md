@@ -21,8 +21,7 @@ Or pick a binary from [releases](https://github.com/HolyPrapor/memento/releases)
 
 ```bash
 memento index docs/agent-wiki       # build the search index
-memento search "runner separation"  # search with ranked results
-memento search --json "migration"   # structured output for scripts
+memento search "runner separation"  # search with ranked results (JSON)
 memento search --limit 5 "query"    # limit results
 ```
 

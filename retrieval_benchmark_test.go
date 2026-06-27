@@ -5,7 +5,6 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"testing"
 
@@ -89,13 +88,7 @@ func TestRetrievalBenchmark(t *testing.T) {
 
 		if !found {
 			t.Logf("query %q: expected section %q#%q not found in top %d results", qp.Query, qp.ExpectedSection, qp.ExpectedHeading, k)
-		}
-
-		if !found {
 			continue
-		}
-		for _, r := range results {
-			_ = r
 		}
 	}
 
@@ -184,7 +177,7 @@ func TestIndividualQueries(t *testing.T) {
 			if !found {
 				t.Errorf("expected section %q#%q not found in results (got %d results)", qp.ExpectedSection, qp.ExpectedHeading, len(results))
 				for i, r := range results {
-					t.Logf("  result %d: %s#%s [%s] score=%.2f", i+1, r.Path, r.Anchor, r.Heading, r.Score)
+					t.Logf("  result %d: %s [%s] relevance=%.2f", i+1, r.Path, r.Heading, r.Relevance)
 				}
 			} else if foundRank > qp.MinRank {
 				t.Errorf("expected section %q#%q at rank <= %d, got rank %d", qp.ExpectedSection, qp.ExpectedHeading, qp.MinRank, foundRank)
@@ -192,5 +185,3 @@ func TestIndividualQueries(t *testing.T) {
 		})
 	}
 }
-
-var _ = sort.Ints

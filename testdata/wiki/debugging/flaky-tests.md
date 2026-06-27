@@ -7,7 +7,8 @@ Known flaky tests and their root causes.
 The indexer tests became flaky after the storage migration because the test
 harness was not properly resetting the database between test cases. Each test
 expected a clean state, but concurrent test runs would leave residual data
-that caused assertion failures.
+that caused assertion failures. The root cause is related to the
+[Migration Steps](decisions/storage-v2.md#migration-steps) procedure.
 
 Fix: Added a database reset in the test setup function that runs before each
 test case.
