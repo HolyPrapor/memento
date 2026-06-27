@@ -36,4 +36,6 @@ memento index docs/agent-wiki
 ```
 memento index [--db .memento/wiki.db] <wiki-dir>
 memento search [--db .memento/wiki.db] [--limit 10] <query>
+memento version
+memento update
 ```

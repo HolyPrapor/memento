@@ -4,11 +4,14 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	"memento/internal/indexer"
 	"memento/internal/searcher"
 )
+
+var version = "dev"
 
 func main() {
 	if len(os.Args) < 2 {
@@ -21,6 +24,10 @@ func main() {
 		runIndex(os.Args[2:])
 	case "search":
 		runSearch(os.Args[2:])
+	case "version":
+		runVersion()
+	case "update":
+		runUpdate()
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", os.Args[1])
 		printUsage()
@@ -28,10 +35,16 @@ func main() {
 	}
 }
 
+func runVersion() {
+	fmt.Printf("memento %s %s/%s\n", version, runtime.GOOS, runtime.GOARCH)
+}
+
 func printUsage() {
 	fmt.Fprint(os.Stderr, `Usage:
   memento index [--db .memento/wiki.db] <wiki-dir>
   memento search [--db .memento/wiki.db] [--limit 10] <query>
+  memento version
+  memento update
 `)
 }
 
