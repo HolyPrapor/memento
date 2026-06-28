@@ -121,8 +121,5 @@ func insertSections(db *sql.DB, insertSection, insertFTS, insertLink *sql.Stmt, 
 }
 
 func buildHeadingWeight(heading string) string {
-	if heading == "" {
-		return ""
-	}
-	return heading + "\n" + heading + "\n" + heading
+	return heading
 }

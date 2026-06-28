@@ -14,11 +14,7 @@ func TestBuildHeadingWeight(t *testing.T) {
 	}{
 		{
 			heading:  "Getting Started",
-			expected: "Getting Started\nGetting Started\nGetting Started",
-		},
-		{
-			heading:  "",
-			expected: "",
+			expected: "Getting Started",
 		},
 	}
 
